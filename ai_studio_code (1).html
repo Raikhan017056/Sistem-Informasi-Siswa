@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Informasi Siswa PRO - Firebase</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome untuk Icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SweetAlert2 untuk Notifikasi -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .stats-card { transition: 0.3s; border-left: 5px solid #0d6efd; }
+        .stats-card:hover { transform: translateY(-5px); }
+    </style>
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-dark bg-primary mb-4 shadow">
+    <div class="container">
+        <span class="navbar-brand mb-0 h1"><i class="fas fa-university me-2"></i> SISFO AKADEMIK</span>
+    </div>
+</nav>
+
+<div class="container">
+    <!-- BARIS STATISTIK -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card stats-card shadow-sm p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted text-uppercase small font-weight-bold">Total Siswa</h6>
+                        <h2 id="statTotal" class="mb-0">0</h2>
+                    </div>
+                    <i class="fas fa-users fa-2x text-primary op-5"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card shadow-sm p-3">
+                <div class="row text-center" id="statKelas">
+                    <!-- Stat per kelas akan muncul di sini -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- FORM INPUT -->
+        <div class="col-md-4">
+            <div class="card shadow border-0 mb-4">
+                <div class="card-header bg-white font-weight-bold">Input Data</div>
+                <div class="card-body">
+                    <input type="hidden" id="studentId">
+                    <div class="mb-3">
+                        <label class="form-label small font-weight-bold text-muted">NAMA LENGKAP</label>
+                        <input type="text" id="nama" class="form-control form-control-lg" placeholder="Masukkan nama...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small font-weight-bold text-muted">NIS (NOMOR INDUK)</label>
+                        <input type="number" id="nis" class="form-control" placeholder="12345">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small font-weight-bold text-muted">KELAS</label>
+                        <select id="kelas" class="form-select text-primary font-weight-bold">
+                            <option value="X">KELAS X</option>
+                            <option value="XI">KELAS XI</option>
+                            <option value="XII">KELAS XII</option>
+                        </select>
+                    </div>
+                    <button id="btnSimpan" class="btn btn-primary w-100 py-2">
+                        <i class="fas fa-save me-2"></i> Simpan Data
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TABEL DATA -->
+        <div class="col-md-8">
+            <div class="card shadow border-0">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                    <h5 class="mb-0">Daftar Siswa</h5>
+                    <!-- FITUR SEARCH -->
+                    <div class="input-group style="width: 250px;">
+                        <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" id="cariSiswa" class="form-control bg-light border-start-0" placeholder="Cari nama...">
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light text-muted small">
+                            <tr>
+                                <th class="ps-3">NIS</th>
+                                <th>NAMA SISWA</th>
+                                <th>KELAS</th>
+                                <th class="text-center">AKSI</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelSiswa">
+                            <!-- Data -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc, serverTimestamp, query, orderBy } 
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSy...",
+    authDomain: "proyek-kamu.firebaseapp.com",
+    projectId: "proyek-kamu",
+    storageBucket: "proyek-kamu.appspot.com",
+    messagingSenderId: "123456789",
+    appId: "1:123456789:web:abcdef"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const colRef = collection(db, "siswa");
+
+  const inputNama = document.getElementById('nama');
+  const inputNis = document.getElementById('nis');
+  const inputKelas = document.getElementById('kelas');
+  const inputId = document.getElementById('studentId');
+  const inputCari = document.getElementById('cariSiswa');
+  const tabelSiswa = document.getElementById('tabelSiswa');
+
+  let allData = []; // Simpan data lokal untuk fitur search
+
+  // --- FUNGSI SIMPAN & VALIDASI ---
+  btnSimpan.addEventListener('click', async () => {
+    if (inputNama.value == "" || inputNis.value == "") {
+        Swal.fire('Oops!', 'Nama dan NIS tidak boleh kosong', 'warning');
+        return;
+    }
+
+    try {
+        const id = inputId.value;
+        const data = {
+            nama: inputNama.value,
+            nis: inputNis.value,
+            kelas: inputKelas.value,
+            updatedAt: serverTimestamp()
+        };
+
+        if (id === "") {
+            await addDoc(colRef, data);
+            Swal.fire('Berhasil!', 'Data siswa ditambahkan', 'success');
+        } else {
+            await updateDoc(doc(db, "siswa", id), data);
+            Swal.fire('Berhasil!', 'Data siswa diperbarui', 'success');
+            inputId.value = "";
+            btnSimpan.innerHTML = '<i class="fas fa-save me-2"></i> Simpan Data';
+        }
+        inputNama.value = ""; inputNis.value = "";
+    } catch (e) {
+        Swal.fire('Error', e.message, 'error');
+    }
+  });
+
+  // --- FUNGSI TAMPIL DATA & SEARCH ---
+  const renderData = (dataArray) => {
+    tabelSiswa.innerHTML = "";
+    dataArray.forEach(d => {
+        tabelSiswa.innerHTML += `
+            <tr>
+                <td class="ps-3"><span class="badge bg-secondary">${d.nis}</span></td>
+                <td><span class="fw-bold text-dark">${d.nama}</span></td>
+                <td><span class="badge bg-info text-dark">${d.kelas}</span></td>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-outline-warning me-1" onclick="editData('${d.id}', '${d.nama}', '${d.nis}', '${d.kelas}')"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="hapusData('${d.id}')"><i class="fas fa-trash"></i></button>
+                </td>
+            </tr>
+        `;
+    });
+  };
+
+  // Listen data dari Firebase (Real-time)
+  const q = query(colRef, orderBy("updatedAt", "desc"));
+  onSnapshot(q, (snapshot) => {
+    allData = [];
+    snapshot.docs.forEach(doc => {
+        allData.push({ ...doc.data(), id: doc.id });
+    });
+    renderData(allData);
+    updateStats(allData);
+  });
+
+  // Fungsi Filter Search
+  inputCari.addEventListener('keyup', (e) => {
+    const keyword = e.target.value.toLowerCase();
+    const filtered = allData.filter(siswa => siswa.nama.toLowerCase().includes(keyword));
+    renderData(filtered);
+  });
+
+  // --- FUNGSI STATISTIK ---
+  function updateStats(data) {
+    document.getElementById('statTotal').innerText = data.length;
+    
+    const countPerKelas = data.reduce((acc, curr) => {
+        acc[curr.kelas] = (acc[curr.kelas] || 0) + 1;
+        return acc;
+    }, {});
+
+    const kelasKeys = ['X', 'XI', 'XII'];
+    document.getElementById('statKelas').innerHTML = kelasKeys.map(k => `
+        <div class="col-4 border-end">
+            <div class="small text-muted">Kls ${k}</div>
+            <div class="h5 mb-0">${countPerKelas[k] || 0}</div>
+        </div>
+    `).join('');
+  }
+
+  // --- HAPUS & EDIT (Global window functions) ---
+  window.hapusData = async (id) => {
+    Swal.fire({
+      title: 'Yakin hapus?',
+      text: "Data yang dihapus tidak bisa kembali!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      confirmButtonText: 'Ya, Hapus!'
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        await deleteDoc(doc(db, "siswa", id));
+        Swal.fire('Terhapus!', 'Data telah dibuang.', 'success');
+      }
+    });
+  }
+
+  window.editData = (id, nama, nis, kelas) => {
+    inputId.value = id;
+    inputNama.value = nama;
+    inputNis.value = nis;
+    inputKelas.value = kelas;
+    btnSimpan.innerHTML = '<i class="fas fa-sync me-2"></i> Update Data Siswa';
+    window.scrollTo(0,0);
+  }
+</script>
+</body>
+</html>
