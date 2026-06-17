@@ -1,0 +1,41 @@
+/* ================= CUSTOM STYLES ================= */
+
+/* Transisi halus saat beralih menu sidebar */
+.menu-btn {
+    transition: all 0.2s ease-in-out;
+}
+
+/* Kustomisasi scrollbar untuk tabel database di panel admin */
+.overflow-x-auto::-webkit-scrollbar {
+    height: 6px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Animasi sederhana saat beralih menu konten */
+.dashboard-content {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

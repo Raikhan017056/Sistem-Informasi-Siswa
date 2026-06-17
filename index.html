@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil DKV & MPLB - SMK Informatika Kota Serang</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome untuk Icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Custom JS (defer agar dimuat setelah DOM selesai dibuat) -->
+    <script src="script.js" defer></script>
+</head>
+<body class="bg-gray-50 font-sans text-gray-800 min-h-screen flex flex-col">
+
+    <!-- ================= NAVBAR ================= -->
+    <nav id="navbar" class="bg-blue-900 text-white shadow-md sticky top-0 z-50 hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-3">
+                    <span class="font-bold text-lg tracking-wider">SMK INFORMATIKA</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="nav-user-info" class="text-sm bg-blue-800 px-3 py-1 rounded"></span>
+                    <button onclick="logout()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-sm transition duration-150">
+                        <i class="fa-solid fa-right-from-bracket mr-1"></i> Keluar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ================= MAIN CONTAINER ================= -->
+    <main class="flex-grow flex items-center justify-center p-4">
+
+        <!-- 1. LOGIN SCREEN -->
+        <div id="login-view" class="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold text-blue-900">SMK Informatika</h2>
+                <p class="text-gray-500 text-sm">Kota Serang</p>
+                <div class="mt-4 border-b pb-2">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-gray-400">Pintu Masuk Portal</span>
+                </div>
+            </div>
+
+            <!-- Login Tabs -->
+            <div class="flex mb-6 bg-gray-100 rounded-lg p-1">
+                <button onclick="switchLoginTab('umum')" id="tab-umum" class="w-1/2 py-2 text-center text-sm font-semibold rounded-md bg-white text-blue-900 shadow">
+                    Umum / Tamu
+                </button>
+                <button onclick="switchLoginTab('admin')" id="tab-admin" class="w-1/2 py-2 text-center text-sm font-semibold rounded-md text-gray-500">
+                    Administrator
+                </button>
+            </div>
+
+            <form id="login-form" onsubmit="handleLogin(event)">
+                <input type="hidden" id="login-role" value="umum">
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="username">Username</label>
+                    <input type="text" id="username" required class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Masukkan username">
+                </div>
+                <div class="mb-6">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="password">Password</label>
+                    <input type="password" id="password" required class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Masukkan password">
+                </div>
+                
+                <button type="submit" class="w-full bg-blue-900 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded-md transition duration-200">
+                    Masuk
+                </button>
+            </form>
+
+            <div class="mt-4 text-center text-xs text-gray-500">
+                <p>Akun Demo Default:</p>
+                <p>Umum: <span class="font-semibold">umum</span> / <span class="font-semibold">123</span></p>
+                <p>Admin: <span class="font-semibold">admin</span> / <span class="font-semibold">admin123</span></p>
+            </div>
+        </div>
+
+        <!-- 2. DASHBOARD VIEW -->
+        <div id="dashboard-view" class="w-full max-w-6xl hidden bg-white rounded-lg shadow-lg overflow-hidden flex flex-col lg:flex-row">
+            
+            <!-- Sidebar / Menu -->
+            <aside class="w-full lg:w-1/4 bg-slate-900 text-slate-300 p-6">
+                <div class="mb-8">
+                    <h3 class="text-white font-semibold text-lg">Menu Utama</h3>
+                    <p class="text-xs text-slate-400">Navigasi Halaman</p>
+                </div>
+                <nav class="space-y-2">
+                    <button onclick="switchMenu('home')" class="menu-btn w-full text-left px-4 py-2.5 rounded-lg flex items-center space-x-3 bg-blue-800 text-white font-medium">
+                        <i class="fa-solid fa-house"></i> <span>Beranda</span>
+                    </button>
+                    <button onclick="switchMenu('dkv')" class="menu-btn w-full text-left px-4 py-2.5 rounded-lg flex items-center space-x-3 hover:bg-slate-800 transition">
+                        <i class="fa-solid fa-palette"></i> <span>Jurusan DKV</span>
+                    </button>
+                    <button onclick="switchMenu('mplb')" class="menu-btn w-full text-left px-4 py-2.5 rounded-lg flex items-center space-x-3 hover:bg-slate-800 transition">
+                        <i class="fa-solid fa-briefcase"></i> <span>Jurusan MPLB</span>
+                    </button>
+                    <button id="menu-admin-only" onclick="switchMenu('admin-panel')" class="menu-btn w-full text-left px-4 py-2.5 rounded-lg flex items-center space-x-3 hover:bg-slate-800 transition hidden">
+                        <i class="fa-solid fa-gears"></i> <span>Panel Admin (DB)</span>
+                    </button>
+                </nav>
+            </aside>
+
+            <!-- Main Dashboard Content Area -->
+            <section class="w-full lg:w-3/4 p-8">
+                
+                <!-- CONTENT: HOME -->
+                <div id="content-home" class="dashboard-content space-y-6">
+                    <div class="border-b pb-4">
+                        <h1 class="text-3xl font-bold text-slate-900">Selamat Datang di Portal Profil Jurusan</h1>
+                        <p class="text-gray-500">SMK Informatika Kota Serang</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-blue-50 border border-blue-100 p-6 rounded-xl">
+                            <h2 class="font-bold text-xl text-blue-900 mb-2">Desain Komunikasi Visual (DKV)</h2>
+                            <p class="text-sm text-gray-600 mb-4">Mengembangkan kreativitas di bidang multimedia, desain grafis, fotografi, dan videografi untuk era digital.</p>
+                            <button onclick="switchMenu('dkv')" class="text-blue-700 hover:text-blue-900 text-sm font-semibold flex items-center">
+                                Selengkapnya <i class="fa-solid fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                        <div class="bg-indigo-50 border border-indigo-100 p-6 rounded-xl">
+                            <h2 class="font-bold text-xl text-indigo-900 mb-2">Manajemen Perkantoran & Layanan Bisnis (MPLB)</h2>
+                            <p class="text-sm text-gray-600 mb-4">Mempersiapkan tenaga profesional dalam pengelolaan administrasi perkantoran modern dan komunikasi bisnis.</p>
+                            <button onclick="switchMenu('mplb')" class="text-indigo-700 hover:text-indigo-900 text-sm font-semibold flex items-center">
+                                Selengkapnya <i class="fa-solid fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Buku Tamu / Interaksi Database (Simulasi input) -->
+                    <div class="bg-white border rounded-xl p-6 mt-6 shadow-sm">
+                        <h3 class="font-bold text-lg text-slate-800 mb-4"><i class="fa-solid fa-paper-plane text-blue-600 mr-2"></i>Kirim Pesan & Pertanyaan</h3>
+                        <form id="message-form" onsubmit="saveMessage(event)">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Nama</label>
+                                    <input type="text" id="msg-name" required class="w-full px-3 py-2 border rounded-md text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Email</label>
+                                    <input type="email" id="msg-email" required class="w-full px-3 py-2 border rounded-md text-sm">
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Pesan / Minat Jurusan</label>
+                                <textarea id="msg-content" rows="3" required class="w-full px-3 py-2 border rounded-md text-sm" placeholder="Tuliskan pertanyaan Anda mengenai jurusan..."></textarea>
+                            </div>
+                            <button type="submit" class="bg-blue-900 hover:bg-blue-800 text-white px-4 py-2 rounded text-sm font-semibold">
+                                Kirim Ke Database Sekolah
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- CONTENT: DKV -->
+                <div id="content-dkv" class="dashboard-content space-y-6 hidden">
+                    <div class="border-b pb-4 flex justify-between items-center">
+                        <div>
+                            <h1 id="dkv-title-display" class="text-3xl font-bold text-slate-900">Desain Komunikasi Visual (DKV)</h1>
+                            <p class="text-gray-500">Profil Jurusan Kreatif</p>
+                        </div>
+                        <i class="fa-solid fa-palette text-4xl text-blue-900"></i>
+                    </div>
+                    <div class="space-y-4">
+                        <h3 class="font-bold text-lg text-slate-800">Deskripsi Jurusan</h3>
+                        <p id="dkv-desc-display" class="text-gray-600 leading-relaxed text-justify">
+                            <!-- Diisi lewat JS -->
+                        </p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                            <div class="border p-4 rounded-lg bg-gray-50">
+                                <h4 class="font-bold text-blue-900 mb-2"><i class="fa-solid fa-list-check mr-2"></i>Kompetensi Keahlian</h4>
+                                <ul id="dkv-skills-list" class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                                    <!-- Diisi lewat JS -->
+                                </ul>
+                            </div>
+                            <div class="border p-4 rounded-lg bg-gray-50">
+                                <h4 class="font-bold text-blue-900 mb-2"><i class="fa-solid fa-user-tie mr-2"></i>Prospek Pekerjaan</h4>
+                                <ul id="dkv-jobs-list" class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                                    <!-- Diisi lewat JS -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTENT: MPLB -->
+                <div id="content-mplb" class="dashboard-content space-y-6 hidden">
+                    <div class="border-b pb-4 flex justify-between items-center">
+                        <div>
+                            <h1 id="mplb-title-display" class="text-3xl font-bold text-slate-900">Manajemen Perkantoran dan Layanan Bisnis (MPLB)</h1>
+                            <p class="text-gray-500">Profil Jurusan Bisnis & Administrasi</p>
+                        </div>
+                        <i class="fa-solid fa-briefcase text-4xl text-indigo-900"></i>
+                    </div>
+                    <div class="space-y-4">
+                        <h3 class="font-bold text-lg text-slate-800">Deskripsi Jurusan</h3>
+                        <p id="mplb-desc-display" class="text-gray-600 leading-relaxed text-justify">
+                            <!-- Diisi lewat JS -->
+                        </p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                            <div class="border p-4 rounded-lg bg-gray-50">
+                                <h4 class="font-bold text-indigo-900 mb-2"><i class="fa-solid fa-list-check mr-2"></i>Kompetensi Keahlian</h4>
+                                <ul id="mplb-skills-list" class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                                    <!-- Diisi lewat JS -->
+                                </ul>
+                            </div>
+                            <div class="border p-4 rounded-lg bg-gray-50">
+                                <h4 class="font-bold text-indigo-900 mb-2"><i class="fa-solid fa-user-tie mr-2"></i>Prospek Pekerjaan</h4>
+                                <ul id="mplb-jobs-list" class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                                    <!-- Diisi lewat JS -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTENT: ADMIN PANEL (DATABASE CONTROL) -->
+                <div id="content-admin-panel" class="dashboard-content space-y-6 hidden">
+                    <div class="border-b pb-4">
+                        <h1 class="text-3xl font-bold text-red-700">Panel Administrator</h1>
+                        <p class="text-gray-500">Manajemen Data & Pesan (Simulasi LocalStorage Database)</p>
+                    </div>
+
+                    <!-- Pengaturan Profil Jurusan -->
+                    <div class="bg-gray-50 p-6 rounded-lg border">
+                        <h2 class="font-bold text-lg mb-4 text-slate-800">Ubah Deskripsi Jurusan</h2>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Deskripsi DKV</label>
+                                <textarea id="edit-dkv-desc" rows="2" class="w-full px-3 py-2 border rounded-md text-sm"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Deskripsi MPLB</label>
+                                <textarea id="edit-mplb-desc" rows="2" class="w-full px-3 py-2 border rounded-md text-sm"></textarea>
+                            </div>
+                            <button onclick="updateProfiles()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm font-semibold transition">
+                                Simpan Perubahan Profil
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Output Data dari Database (Pesan Masuk) -->
+                    <div class="bg-white p-6 rounded-lg border shadow-sm">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="font-bold text-lg text-slate-800">Database Pesan / Buku Tamu</h2>
+                            <button onclick="clearMessages()" class="text-xs text-red-600 hover:underline">Kosongkan Database</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full text-sm text-left text-gray-500">
+                                <thead class="text-xs text-gray-700 uppercase bg-gray-100">
+                                    <tr>
+                                        <th class="px-4 py-3">Tanggal</th>
+                                        <th class="px-4 py-3">Nama</th>
+                                        <th class="px-4 py-3">Email</th>
+                                        <th class="px-4 py-3">Isi Pesan</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-messages-table">
+                                    <!-- Diisi secara dinamis melalui JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+        </div>
+
+    </main>
+
+    <!-- ================= FOOTER ================= -->
+    <footer class="bg-slate-900 text-slate-400 py-6 text-center text-sm border-t border-slate-800">
+        <p>&copy; 2026 SMK Informatika Kota Serang. All rights reserved.</p>
+    </footer>
+
+</body>
+</html>
